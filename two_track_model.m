@@ -15,7 +15,9 @@ lwd = 0.507;                    % Percent weight distribution on left
 
 %% Car Parameters
 m = 261.8;                      % Mass of the car & driver [kg]
-[mu_long, mu_lat] = tire_model(m*g/4); ...
+W = m*g;                        % Weight of the car [N]
+
+[mu_long, mu_lat] = tire_model(W/4); ...
                                 % Longitudinal tire friction coefficient 
 Cl = 2.11;                      % Lift coefficient
 Cd = 1.15;                      % Drag coefficient
@@ -29,8 +31,8 @@ Af = 1.0782;                    % Frontal Area [m2]
 % 
 % WT_long = m*a_long*CGz/wb;
 % WT_lat = m*a_lat*CGz/tw;
-% Fzf = m*g*fwd + F_downforce*aero_bal - WT_long;
-% Fzr = m*g*(1-fwd) + F_downforce*(1-aero_bal) + WT_long;
+% Fzf = W*fwd + F_downforce*aero_bal - WT_long;
+% Fzr = W*(1-fwd) + F_downforce*(1-aero_bal) + WT_long;
 % F_net = m*a;
 % F_friction = mu_long*Fz;
 % F_downforce = 1/2*rho*Af*Cl*v^2;
@@ -75,27 +77,27 @@ for i = 1:step
     F_downforce(i) = 1/2*rho*Af*Cl*v(i)^2;
     F_drag(i) = 1/2*rho*Af*Cd*v(i)^2;
     if i ~= 1
-        WT_long(i) = m*g*a(i-1, 1)*CGz/wb;
+        WT_long(i) = W*a(i-1, 1)*CGz/wb;
     end
 
-    Ff = m*g*fwd - WT_long(i);
-    Fr = m*g*(1-fwd) + WT_long(i);
+    Ff = W*fwd - WT_long(i);
+    Fr = W*(1-fwd) + WT_long(i);
     
     if i ~= 1
         WT_lat(i, 1) = Ff*a(i-1, 2)*CGz/tw(1);
         WT_lat(i, 2) = Fr*a(i-1, 2)*CGz/tw(2);
     end
 
-    Fz(i, 1) = m*g*fwd*lwd + F_downforce(i)*aero_bal(v(i))/2 ...
+    Fz(i, 1) = W*fwd*lwd + F_downforce(i)*aero_bal(v(i))/2 ...
         - WT_lat(i, 1);
-    Fz(i, 2) = m*g*fwd*lwd + F_downforce(i)*aero_bal(v(i))/2 ...
+    Fz(i, 2) = W*fwd*lwd + F_downforce(i)*aero_bal(v(i))/2 ...
         + WT_lat(i, 1);
-    Fz(i, 3) = m*g*(1-fwd)*lwd + F_downforce(i)*(1-aero_bal(v(i)))/2 ...
+    Fz(i, 3) = W*(1-fwd)*lwd + F_downforce(i)*(1-aero_bal(v(i)))/2 ...
         - WT_lat(i, 2);
-    Fz(i, 4) = m*g*(1-fwd)*lwd + F_downforce(i)*(1-aero_bal(v(i)))/2 ...
+    Fz(i, 4) = W*(1-fwd)*lwd + F_downforce(i)*(1-aero_bal(v(i)))/2 ...
         + WT_lat(i, 2);
 
-%     [mu_long, mu_lat] = tire_model(m*g); ...
+%     [mu_long, mu_lat] = tire_model(W); ...
                                 % Longitudinal tire friction coefficient 
 
     % TODO: BALANCE LATERAL AND LONG FRICTION
@@ -114,7 +116,7 @@ for i = 1:step
     
     F_net(i) = F_cp(i, 1) + F_cp(i, 2) ...
         + F_cp(i, 3) + F_cp(i, 4) - F_drag(i);
-    a(i, 1) = F_net(i)/(m*g);
+    a(i, 1) = F_net(i)/(W);
     
     t(i+1) = t(i) + dt;
     v(i+1) = v(i) + a(i, 1)*g*dt;

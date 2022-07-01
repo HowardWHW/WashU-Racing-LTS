@@ -13,7 +13,8 @@ fwd = 0.479;                    % Percent weight distribution on front
 
 %% Car Parameters
 m = 261.8;                      % Mass of the car & driver [kg]
-[mu_long, mu_lat] = tire_model(m*g/2); ...
+W = m*g;                        % Weight of the car [N]
+[mu_long, mu_lat] = tire_model(W/2); ...
                                 % Longitudinal tire friction coefficient 
 
 Cl = 2.11;                      % Lift coefficient
@@ -27,8 +28,8 @@ Af = 1.0782;                    % Frontal Area [m2]
 % x = x + v*dt;
 % 
 % WT_long = m*a_long*CGz/wb;
-% Fzf = m*g*fwd + F_downforce*aero_bal - WT_long;
-% Fzr = m*g*(1-fwd) + F_downforce*(1-aero_bal) + WT_long;
+% Fzf = W*fwd + F_downforce*aero_bal - WT_long;
+% Fzr = W*(1-fwd) + F_downforce*(1-aero_bal) + WT_long;
 % F_net = m*a;
 % F_friction = mu_long*Fz;
 % F_downforce = 1/2*rho*Af*Cl*v^2;
@@ -67,11 +68,11 @@ for i = 1:step
     F_downforce(i) = 1/2*rho*Af*Cl*v(i)^2;
     F_drag(i) = 1/2*rho*Af*Cd*v(i)^2;
     if i ~= 1
-        WT_long(i) = m*g*a(i-1)*CGz/wb;
+        WT_long(i) = W*a(i-1)*CGz/wb;
     end
 
-    Fz(i, 1) = m*g*fwd + F_downforce(i)*aero_bal(v(i)) - WT_long(i);
-    Fz(i, 2) = m*g*(1-fwd) + F_downforce(i)*(1-aero_bal(v(i))) ...
+    Fz(i, 1) = W*fwd + F_downforce(i)*aero_bal(v(i)) - WT_long(i);
+    Fz(i, 2) = W*(1-fwd) + F_downforce(i)*(1-aero_bal(v(i))) ...
         + WT_long(i);
 
     F_friction(i, 1) = mu_long*Fz(i, 1);
@@ -83,7 +84,7 @@ for i = 1:step
     F_cp(i, 2) = min(F_engine(i, 2), F_friction(i, 2));
     
     F_net(i) = F_cp(i, 1) + F_cp(i, 2) - F_drag(i);
-    a(i) = F_net(i)/(m*g);
+    a(i) = F_net(i)/(W);
     
     t(i+1) = t(i) + dt;
     v(i+1) = v(i) + a(i)*g*dt;
